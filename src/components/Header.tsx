@@ -6,6 +6,8 @@ import { navigate } from "gatsby";
 function Header() {
     const [isHidden, setIsHidden] = React.useState<boolean>(false);
     const [showPerson, setShowPerson] = React.useState<boolean>(false);
+    const [userName, setUserName] = React.useState<string>("");
+    const [userPermissions, setUserPermissions] = React.useState<string>("");
     const lastScrollY = React.useRef(0);
 
     React.useEffect(() => {
@@ -35,6 +37,10 @@ function Header() {
             setShowPerson(false)
         }
 
+        if (typeof window !== 'undefined') {
+            setUserName(localStorage.getItem('name') || "")
+            setUserPermissions(["Guest", "Student", "Teacher"][parseInt(localStorage.getItem('permissions') || "0")] || "Guest")
+        }
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
@@ -57,21 +63,23 @@ function Header() {
             <div className=" text-lg">
                 <div className=" z-40 bg-white ">
                     <button className="px-2 pt-2 cursor-pointer" onClick={() => setShowPerson(true)}>
-                        {parseInt(localStorage.getItem("permissions") || "") > 0
-                            ? <span className=" inline-block mr-2 text-xl">{localStorage.getItem("name")}</span>
+                        {userPermissions !== "Guest"
+                            ? <span className=" inline-block mr-2 text-xl">{userName}</span>
                             : <Link to="/login" className=" underline inline-block mr-2 text-xl">Login</Link>
                         }
                         <MaterialSymbolsAccountCircle className=" inline-block text-4xl"></MaterialSymbolsAccountCircle>
                     </button>
                 </div>
                 <div className={`d-c rounded-b-md bg-white shadow-md text-lg -mt-36 pt-3  transition-transform duration-300 ${showPerson ? "translate-y-24" : "translate-y-0"}`}>
-                    <div className="relative px-4 pt-3 d-c"><span className=" absolute top-0 left-2 text-sm">Role：</span>{parseInt(localStorage.getItem("permissions") || "") > 0 ? (localStorage.getItem("permissions") == "1" ? "Student" : "Teacher") : "Guest"}</div>
+                    <div className="relative px-4 pt-3 d-c"><span className=" absolute top-0 left-2 text-sm">Role：</span>{userPermissions}</div>
                     <div className=" cursor-pointer px-4 py-2 hover:bg-blue-50 d-c"><button
                         className="underline cursor-pointer"
                         onClick={() => {
-                            localStorage.setItem("password", "")
-                            localStorage.setItem("name", "")
-                            localStorage.setItem("permissions", "0")
+                            if (typeof window !== 'undefined') {
+                                localStorage.setItem("name", "")
+                                localStorage.setItem("permissions", "0")
+                            }
+                            setShowPerson(false)
                             navigate("/")
                         }}>Logout</button></div>
                 </div>
