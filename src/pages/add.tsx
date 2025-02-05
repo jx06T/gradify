@@ -136,6 +136,8 @@ function AddPage() {
     const [stId, setStId] = React.useState<number>(0)
     const [subject, setSubject] = React.useState<string>("")
     const [exam, setExam] = React.useState<string>("")
+    const [subjects, setSubjects] = React.useState<string[]>([])
+    const [exams, setExams] = React.useState<string[]>([])
     const [inputV, setInputV] = React.useState<number>(0)
     const [uploading, setUploading] = React.useState<boolean>(false)
 
@@ -179,14 +181,36 @@ function AddPage() {
             });
     }
 
+    React.useEffect(() => {
+        const options = { method: 'GET', headers: { 'User-Agent': 'insomnia/10.3.0' } };
+
+        fetch(GasLink + '?type=get-subjects&=', options)
+            .then(response => response.json())
+            .then(response => setSubjects(response.response))
+            .catch(err => console.error(err));
+
+    }, [])
+
+    React.useEffect(() => {
+        if (!subject) {
+            return
+        }
+        const options = { method: 'GET', headers: { 'User-Agent': 'insomnia/10.3.0' } };
+
+        fetch(GasLink + `?type=get-exams&subject=${subject}`, options)
+            .then(response => response.json())
+            .then(response => setExams(response.response))
+            .catch(err => console.error(err));
+    }, [subject])
+
     return (
         <div>
             <Header />
             <div className=" w-full mt-20">
                 <div className=" px-[10%] sm:px-[20%] text-xl flex flex-col justify-center items-center">
-                    <span className=" mt-4">Suject</span>
+                    <span className=" mt-4">Subject</span>
                     <CustomSelect
-                        options={["a", "b", "c"].map(e => ({ value: e, label: e }))}
+                        options={subjects.map(e => ({ value: e, label: e }))}
                         placeholder="Select a Subject or add a new one"
                         onChange={setSubject}
                         initialValue=""
@@ -194,7 +218,7 @@ function AddPage() {
                     />
                     <span className=" mt-4">Exam Name</span>
                     <CustomSelect
-                        options={["a", "b", "c"].map(e => ({ value: e, label: e }))}
+                        options={exams.map(e => ({ value: e, label: e }))}
                         placeholder="Select a Exam Name or add a new one"
                         onChange={setExam}
                         initialValue=""
