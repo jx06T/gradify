@@ -77,7 +77,9 @@ function Header() {
                         onClick={() => {
                             if (typeof window !== 'undefined') {
                                 localStorage.setItem("name", "")
+                                localStorage.setItem("jwt", "")
                                 localStorage.setItem("permissions", "0")
+                                window.location.reload()
                             }
                             setShowPerson(false)
                             navigate("/")
