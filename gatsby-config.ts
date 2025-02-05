@@ -9,7 +9,24 @@ const config: GatsbyConfig = {
   // If you use VSCode you can also use the GraphQL plugin
   // Learn more at: https://gatsby.dev/graphql-typegen
   graphqlTypegen: true,
-  plugins: ["gatsby-plugin-postcss", "gatsby-plugin-sitemap"]
+  plugins: [
+    "gatsby-plugin-postcss",
+    "gatsby-plugin-sitemap",
+    {
+      resolve: `gatsby-plugin-manifest`,
+      options: {
+        name: `gradify`,
+        short_name: `gradify`,
+        start_url: `/`,
+        background_color: `#ffffff`,
+        theme_color: `#000000`,
+        display: `minimal-ui`,
+        icon: `src/images/icon.png`,  // 指向圖標文件的路徑
+      },
+    },
+    `gatsby-plugin-image`,
+    `gatsby-plugin-sharp`,
+    `gatsby-transformer-sharp`,]
 };
 
 export default config;

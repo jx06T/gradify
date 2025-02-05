@@ -1,3 +1,7 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+.masked-text {
+  background: linear-gradient(to right, #f3a303, #d31905);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
