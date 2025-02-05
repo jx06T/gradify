@@ -1,25 +1,27 @@
 import * as React from "react"
 import { StaticImage } from "gatsby-plugin-image";
-import { useState } from "react";
 import createPopWindows from "../components/PopWindows";
 import { navigate } from "gatsby";
-
-const LoadingAnimation = () => {
-    return (
-        <div className="flex items-center justify-center w-full h-6 bg-transparent rounded-lg">
-            <div className="flex space-x-2">
-                <div className="w-3 h-3 bg-white rounded-full animate-[bounce_1s_ease-in-out_infinite]" />
-                <div className="w-3 h-3 bg-white rounded-full animate-[bounce_1s_ease-in-out_0.2s_infinite]" />
-                <div className="w-3 h-3 bg-white rounded-full animate-[bounce_1s_ease-in-out_0.4s_infinite]" />
-            </div>
-        </div>
-    );
-};
+import LoadingAnimation from "../components/LoadingAnimation";
+import { GasLink } from "../utils/GasLink";
 
 function LoginPage() {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [logining, setLogining] = useState<boolean>(false);
+    const [username, setUsername] = React.useState('');
+    const [password, setPassword] = React.useState('');
+    const [logining, setLogining] = React.useState<boolean>(false);
+
+    async function hashPassword(password: string) {
+        const encoder = new TextEncoder();
+        const message = "qofmusyrps" + password; // 與後端一致的鹽
+        const data = encoder.encode(message); // 轉換為 Uint8Array
+
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data); // 計算 SHA-256 雜湊
+        const hashArray = Array.from(new Uint8Array(hashBuffer)); // 轉換為 byte array
+        const hashBase64 = btoa(String.fromCharCode(...hashArray)) // 轉換為 Base64
+
+        return hashBase64.replace(/=+$/, ""); // 移除 Base64 末尾的 "="
+    }
+
 
     const handleSubmit = async (e: SubmitEventInit) => {
         // @ts-ignore
@@ -28,27 +30,32 @@ function LoginPage() {
             const options = {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain', 'User-Agent': 'insomnia/10.3.0' },
-                body: `{"type":"login","data":{"name":"${username}","password":"${password}"}}`
+                body: `{"type":"login","data":{"name":"${username}","password":"${await hashPassword(password)}"}}`
             };
-            const response = await fetch('https://script.google.com/macros/s/AKfycbxYwzWbMhfUxyyfgZ132y6cY9vo6loWDFnjFkTLtiajtwsTLk4C-eUIlM1ULbhafpdG/exec', options)
+            const response = await fetch(GasLink, options)
 
             const result = await response.json();
-            console.log(result)
             if (result.permissions > 0) {
-                createPopWindows('登入成功', `身分：${["未登入", "學生", "教師"][parseInt(result.permissions)]}`, () => { navigate("/") })
-                localStorage.setItem("name", username)
-                localStorage.setItem("permissions", result.permissions)
-                localStorage.setItem("password", password)
+                createPopWindows('Login successful', `role：${["Guest", "Student", "Teacher"][parseInt(result.permissions)]}`, () => { navigate("/") })
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem("name", username)
+                    localStorage.setItem("permissions", result.permissions)
+                    localStorage.setItem('jwt', result.token);
+                }
             } else {
-                createPopWindows('登入失敗', "請重新嘗試", () => { })
-                localStorage.setItem("name", "")
-                localStorage.setItem("permissions", "0")
+                createPopWindows('Login failed', "Please try again. If you still cannot log in, please ask your teacher.")
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem("name", "")
+                    localStorage.setItem("permissions", "0")
+                }
             }
             setLogining(false)
         } catch (error) {
-            createPopWindows('登入失敗', "錯誤訊息" + error, () => { })
-            localStorage.setItem("name", "")
-            localStorage.setItem("permissions", "0")
+            createPopWindows('Login failed', "error message：" + error)
+            if (typeof window !== 'undefined') {
+                localStorage.setItem("name", "")
+                localStorage.setItem("permissions", "0")
+            }
             setLogining(false)
         }
     };

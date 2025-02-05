@@ -1,7 +1,7 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client';
 
-function createPopWindows(title: string, message: string, onClose: Function): void {
+function createPopWindows(title: string, message?: string, onClose?: Function): void {
 
     const dialogRoot = document.createElement('div');
     document.body.appendChild(dialogRoot);
@@ -18,7 +18,9 @@ function createPopWindows(title: string, message: string, onClose: Function): vo
                         <pre className=' text-wrap whitespace-pre-wrap px-3'>{message}</pre>
                         <div className=' w-full flex justify-end space-x-4'>
                             <button className=' cursor-pointer px-2 rounded-full border-2 border-sotne-500 hover:bg-sotne-300' onClick={() => {
-                                onClose()
+                                if (onClose) {
+                                    onClose()
+                                }
                                 root.unmount();
                                 document.body.removeChild(dialogRoot);
                             }}>close</button>

@@ -1,15 +1,14 @@
-import { useState, useEffect, useRef } from "react";
 import * as React from "react"
 import { Link } from "gatsby";
 import { MaterialSymbolsAccountCircle } from "./Icons";
 import { navigate } from "gatsby";
 
 function Header() {
-    const [isHidden, setIsHidden] = useState<boolean>(false);
-    const [showPerson, setShowPerson] = useState<boolean>(false);
-    const lastScrollY = useRef(0);
+    const [isHidden, setIsHidden] = React.useState<boolean>(false);
+    const [showPerson, setShowPerson] = React.useState<boolean>(false);
+    const lastScrollY = React.useRef(0);
 
-    useEffect(() => {
+    React.useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
             setIsHidden(currentScrollY > lastScrollY.current && currentScrollY > 50);
@@ -21,7 +20,7 @@ function Header() {
 
     }, []);
 
-    useEffect(() => {
+    React.useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
             //@ts-ignore
             if (!e.target.classList || !e.target.parentNode.classList) {
