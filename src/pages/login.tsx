@@ -10,18 +10,17 @@ function LoginPage() {
     const [password, setPassword] = React.useState('');
     const [logining, setLogining] = React.useState<boolean>(false);
 
-    async function hashPassword(password: string) {
-        const encoder = new TextEncoder();
-        const message = "qofmusyrps" + password; // 與後端一致的鹽
-        const data = encoder.encode(message); // 轉換為 Uint8Array
-
-        const hashBuffer = await crypto.subtle.digest("SHA-256", data); // 計算 SHA-256 雜湊
-        const hashArray = Array.from(new Uint8Array(hashBuffer)); // 轉換為 byte array
-        const hashBase64 = btoa(String.fromCharCode(...hashArray)) // 轉換為 Base64
-
-        return hashBase64.replace(/=+$/, ""); // 移除 Base64 末尾的 "="
+    async function hashPassword(password:string) {
+        const encoder = new TextEncoder();  // 預設使用 UTF-8
+        const message = "qofmusyrps" + password;
+        const data = encoder.encode(message);  // 轉換為 Uint8Array
+    
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashBase64 = btoa(String.fromCharCode(...hashArray)) // btoa 會將 bytes 轉為 Base64
+    
+        return hashBase64.replace(/=+$/, "").replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); // 去掉 Base64 padding
     }
-
 
     const handleSubmit = async (e: SubmitEventInit) => {
         // @ts-ignore
