@@ -66,18 +66,19 @@ function ViewPage() {
     }, [studentId])
 
     React.useEffect(() => {
-        const myHeaders = new Headers();
-        myHeaders.append("Content-Type", "text/plain");
-        const options = { method: 'GET', headers: myHeaders };
+        // const myHeaders = new Headers();
+        // myHeaders.append("Content-Type", "text/plain");
+        // const options = { method: 'GET', headers: myHeaders };
 
-        fetch(GAS_LINK + '?type=get-subjects&=', options)
-            .then(response => response.json())
-            .then(response => {
-                setSubjects(response.response.data)
-                setUploading(false)
-            })
-            .catch(err => console.error(err));
+        // fetch(GAS_LINK + '?type=get-subjects&=', options)
+        //     .then(response => response.json())
+        //     .then(response => {
+        //         setSubjects(response.response.data)
+        //         setUploading(false)
+        //     })
+        //     .catch(err => console.error(err));
 
+            
         const myHeaders2 = new Headers();
         myHeaders2.append("Content-Type", "text/plain");
         const options2 = { method: 'GET', headers: myHeaders2 };
@@ -88,7 +89,7 @@ function ViewPage() {
                 setUploading(false)
             })
             .catch(err => console.error(err));
-
+            
     }, [])
 
     React.useEffect(() => {
