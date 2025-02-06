@@ -26,10 +26,12 @@ function LoginPage() {
         // @ts-ignore
         e.preventDefault();
         try {
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "text/plain");
             const options = {
                 method: 'POST',
                 redirect: "follow",
-                headers: { 'Content-Type': 'text/plain', 'User-Agent': 'insomnia/10.3.0' },
+                headers: myHeaders,
                 body: `{"type":"login","data":{"name":"${username}","password":"${await hashPassword(password)}"}}`
             };
             //@ts-ignore
