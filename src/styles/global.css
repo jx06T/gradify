@@ -5,3 +5,16 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  /* 隱藏滾動條 */
+}
+
+.no-scrollbar {
+  /* 隱藏滾動條（WebKit 瀏覽器，如 Chrome、Safari） */
+  -ms-overflow-style: none;
+  /* 針對 Internet Explorer 和 Edge */
+  scrollbar-width: none;
+  /* 針對 Firefox */
+}

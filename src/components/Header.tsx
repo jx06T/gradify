@@ -2,6 +2,8 @@ import * as React from "react"
 import { Link } from "gatsby";
 import { MaterialSymbolsAccountCircle } from "./Icons";
 import { navigate } from "gatsby";
+import { storage } from "../utils/storage";
+
 
 function Header() {
     const [isHidden, setIsHidden] = React.useState<boolean>(false);
@@ -37,10 +39,8 @@ function Header() {
             setShowPerson(false)
         }
 
-        if (typeof window !== 'undefined') {
-            setUserName(localStorage.getItem('name') || "")
-            setUserPermissions(["Guest", "Student", "Teacher"][parseInt(localStorage.getItem('permissions') || "0")] || "Guest")
-        }
+        setUserName(storage.getItem('name') || "")
+        setUserPermissions(["Guest", "Student", "Teacher"][parseInt(storage.getItem('permissions') || "0")] || "Guest")
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
@@ -75,10 +75,10 @@ function Header() {
                     <div className=" cursor-pointer px-4 py-2 hover:bg-blue-50 d-c"><button
                         className="underline cursor-pointer"
                         onClick={() => {
+                            storage.setItem("name", "")
+                            storage.setItem("jwt", "")
+                            storage.setItem("permissions", "0")
                             if (typeof window !== 'undefined') {
-                                localStorage.setItem("name", "")
-                                localStorage.setItem("jwt", "")
-                                localStorage.setItem("permissions", "0")
                                 window.location.reload()
                             }
                             setShowPerson(false)

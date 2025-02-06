@@ -3,22 +3,27 @@ import { StaticImage } from "gatsby-plugin-image";
 import createPopWindows from "../components/PopWindows";
 import { navigate } from "gatsby";
 import LoadingAnimation from "../components/LoadingAnimation";
-import { GasLink } from "../utils/GasLink";
+import { GAS_LINK } from "../utils/gasLink";
+import { Link } from "gatsby";
+import { useLocation } from "@reach/router";
+import { storage } from "../utils/storage";
+
 
 function LoginPage() {
     const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [logining, setLogining] = React.useState<boolean>(false);
+    const location = useLocation();
 
-    async function hashPassword(password:string) {
+    async function hashPassword(password: string) {
         const encoder = new TextEncoder();  // 預設使用 UTF-8
         const message = "qofmusyrps" + password;
         const data = encoder.encode(message);  // 轉換為 Uint8Array
-    
+
         const hashBuffer = await crypto.subtle.digest("SHA-256", data);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         const hashBase64 = btoa(String.fromCharCode(...hashArray)) // btoa 會將 bytes 轉為 Base64
-    
+
         return hashBase64.replace(/=+$/, "").replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); // 去掉 Base64 padding
     }
 
@@ -26,8 +31,8 @@ function LoginPage() {
         // @ts-ignore
         e.preventDefault();
         try {
-        const myHeaders = new Headers();
-        myHeaders.append("Content-Type", "text/plain");
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "text/plain");
             const options = {
                 method: 'POST',
                 redirect: "follow",
@@ -35,34 +40,44 @@ function LoginPage() {
                 body: `{"type":"login","data":{"name":"${username}","password":"${await hashPassword(password)}"}}`
             };
             //@ts-ignore
-            const response = await fetch(GasLink, options)
+            const response = await fetch(GAS_LINK, options)
 
             const result = await response.json();
             if (result.permissions > 0) {
                 createPopWindows('Login successful', `role：${["Guest", "Student", "Teacher"][parseInt(result.permissions)]}`, () => { navigate("/") })
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem("name", username)
-                    localStorage.setItem("id", result.id)
-                    localStorage.setItem("permissions", result.permissions)
-                    localStorage.setItem('jwt', result.token);
-                }
+                storage.setItem("name", username)
+                storage.setItem("id", result.id)
+                storage.setItem("permissions", result.permissions)
+                storage.setItem('jwt', result.token);
             } else {
                 createPopWindows('Login failed', "Please try again. If you still cannot log in, please ask your teacher.")
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem("name", "")
-                    localStorage.setItem("permissions", "0")
-                }
+                storage.setItem("name", "")
+                storage.setItem("permissions", "0")
             }
             setLogining(false)
         } catch (error) {
             createPopWindows('Login failed', "error message：" + error)
-            if (typeof window !== 'undefined') {
-                localStorage.setItem("name", "")
-                localStorage.setItem("permissions", "0")
-            }
+            storage.setItem("name", "")
+            storage.setItem("permissions", "0")
             setLogining(false)
         }
     };
+
+    React.useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const r = params.get("r");
+        if (r) {
+            storage.setItem("name", "")
+            storage.setItem("jwt", "")
+            storage.setItem("permissions", "0")
+            return
+        }
+
+        if (storage.getItem('permissions') && storage.getItem("name") && parseInt(storage.getItem('permissions') || "") > 0 && storage.getItem("jwt")) {
+            navigate("/")
+            return
+        }
+    }, [])
 
     return (
         <div className=" w-full h-screen relative">
@@ -105,6 +120,7 @@ function LoginPage() {
                         <button type="submit" className=" hover:bg-white/50 cursor-pointer w-full bg-white/20 rounded-md mt-4 py-2 px-4">
                             {logining ? <LoadingAnimation /> : "登入"}
                         </button>
+                        <div className="px-2 text-sm text-white "> <Link className=" underline " to="/">back to home</Link> <span>｜</span><Link className=" underline " to="/">can not login ?</Link></div>
                     </form>
                 </div>
             </div>

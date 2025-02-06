@@ -5,33 +5,85 @@ import CustomSelect from '../components/Select';
 import { navigate } from "gatsby";
 import createPopWindows from "../components/PopWindows";
 import LoadingAnimation from "../components/LoadingAnimation";
-import { GasLink } from "../utils/GasLink";
+import { GAS_LINK } from "../utils/gasLink";
+import { storage } from "../utils/storage";
 
 
-interface ExamScoreT { exam: string, score: number }
+function ScoresTable({ rowHeader, colHeader, data }: { rowHeader: string[], colHeader: string[], data: string[][] }) {
+    return (
+        <div className="w-full overflow-x-auto relative rounded-md border-x-2 border-y border-gray-400">
+            <table className="w-full table-auto whitespace-nowrap rounded-md">
+                <thead>
+                    <tr className="bg-gray-200 text-black">
+                        <th className="border p-2 border-gray-300"></th>
+                        {rowHeader.map((header, index) => (
+                            <th key={index} className="border border-gray-300 p-2">{header}</th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.map((row, rowIndex) => (
+                        <tr key={rowIndex} className="hover:bg-gray-100">
+                            <td className="border p-2 font-bold bg-gray-100 border-gray-300 w-36">{colHeader[rowIndex]}</td>
+                            {row.map((cell, cellIndex) => (
+                                <td key={cellIndex} className="border border-gray-300 p-2 text-center">{cell}</td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    )
+}
+
+function transpose(matrix: string[][]) {
+    return matrix[0].map((_, colIndex) =>
+        matrix.map(row => row[colIndex])
+    );
+}
+
 
 function ViewPage() {
     const [subject, setSubject] = React.useState<string>("")
     const [exam, setExam] = React.useState<string>("")
     const [studentId, setStudentId] = React.useState<string>("")
     const [subjects, setSubjects] = React.useState<string[]>([])
-    const [exams, setExams] = React.useState<string[]>([])
+    const [exams, setExams] = React.useState<string[]>(["All"])
     const [uploading, setUploading] = React.useState<boolean>(true)
+    const [uploadingExamList, setUploadingExamList] = React.useState<boolean>(false)
     const [uploadingMsg, setUploadingMsg] = React.useState<string>("Verifying identity")
-    const [scoresList, setScoresList] = React.useState<ExamScoreT[]>([])
+    const [students, setStudents] = React.useState<{ name: string, id: number }[]>([])
 
-    React.useEffect(()=>{
+    const [rowHeader, setRowHeader] = React.useState<string[]>([])
+    const [colHeader, setColHeader] = React.useState<string[]>([])
+    const [scoreData, setScoreData] = React.useState<string[][]>([])
+
+    const [showSendBtn, setShowSendBtn] = React.useState<boolean>(false)
+    const [sendSubject, setSendSubject] = React.useState<string>('')
+
+    React.useEffect(() => {
         console.log(studentId)
-    },[studentId])
+    }, [studentId])
 
     React.useEffect(() => {
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "text/plain");
-        const options = { method: 'GET', headers:myHeaders };
+        const options = { method: 'GET', headers: myHeaders };
 
-        fetch(GasLink + '?type=get-subjects&=', options)
+        fetch(GAS_LINK + '?type=get-subjects&=', options)
             .then(response => response.json())
-            .then(response => setSubjects(response.response))
+            .then(response => {
+                setSubjects(response.response.data)
+                setUploading(false)
+            })
+            .catch(err => console.error(err));
+
+        fetch(GAS_LINK + `?type=get-students&token=${storage.getItem('jwt')}`, options)
+            .then(response => response.json())
+            .then(response => {
+                setStudents([{ id: "All", name: "all" }, ...(response.response.data || [])])
+                setUploading(false)
+            })
             .catch(err => console.error(err));
 
     }, [])
@@ -40,95 +92,175 @@ function ViewPage() {
         if (!subject) {
             return
         }
-
+        setUploadingExamList(true)
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "text/plain");
-        const options = { method: 'GET', headers:myHeaders };
+        const options = { method: 'GET', headers: myHeaders };
 
-        fetch(GasLink + `?type=get-exams&subject=${subject}`, options)
+        fetch(GAS_LINK + `?type=get-exams&subject=${subject}`, options)
             .then(response => response.json())
-            .then(response => setExams(response.response||[]))
+            .then(response => {
+                setExams(["All", ...(response.response.data || [])])
+                setUploadingExamList(false)
+            })
             .catch(err => console.error(err));
     }, [subject])
 
     React.useEffect(() => {
-        if (typeof window !== 'undefined') {
-            if (!localStorage.getItem('permissions') || !localStorage.getItem("name") || !localStorage.getItem('permissions') || !localStorage.getItem("jwt")) {
-                createPopWindows("Insufficient permissions", "Please log in", () => { navigate("/") })
-                return
-            }
-            
-            setStudentId(localStorage.getItem("id") || "")
-            console.log(studentId,localStorage.getItem("id") || "")
-            
-            const myHeaders = new Headers();
-            myHeaders.append("Content-Type", "text/plain");
-            const options = {
-                method: 'POST',
-                headers: myHeaders,
-                body: `{"type":"verify","token":"${localStorage.getItem("jwt")}"}`
-            };
-
-            fetch(GasLink, options)
-                .then(response => response.json())
-                .then(response => {
-                    if (!response.success) {
-                        createPopWindows("Insufficient permissions", "Please log in", () => { navigate("/") })
-                    }
-                    setUploading(false)
-                })
-                .catch(err => console.error(err));
+        if (!storage.getItem('permissions') || !storage.getItem("name") || !storage.getItem("jwt")) {
+            createPopWindows("Insufficient permissions", "Please log in", () => { navigate("/") })
+            return
         }
+
+        setStudentId(storage.getItem('permissions') == "1" ? storage.getItem("id") || "" : "")
+        return
+
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "text/plain");
+        const options = {
+            method: 'POST',
+            headers: myHeaders,
+            body: `{"type":"verify","token":"${storage.getItem("jwt")}"}`
+        };
+
+        fetch(GAS_LINK, options)
+            .then(response => response.json())
+            .then(response => {
+                if (!response.success) {
+                    createPopWindows("Insufficient permissions", "Please log in", () => { navigate("/") })
+                }
+                setUploading(false)
+            })
+            .catch(err => console.error(err));
     }, [])
 
+    const handleSend = () => {
+        setUploading(true)
+        setUploadingMsg("Sending")
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "text/plain");
+        const options = {
+            method: 'POST',
+            headers: myHeaders,
+            body: `{"type":"send","token":"${storage.getItem("jwt")}","data":{"subject":"${sendSubject}"}}`
+        };
+
+        fetch(GAS_LINK, options)
+            .then(response => response.json())
+            .then(response => {
+                if (!response.success) {
+                    createPopWindows("Failed to send email", "error message：" + response.error)
+                } else {
+                    createPopWindows("Email sending results", response.results.map((e: { name: string, status: string }) => `${e.name} ｜ status:${e.status}`).join("\n"))
+                }
+                setUploading(false)
+            })
+            .catch(err => console.error(err));
+    }
 
     const handleSearch = () => {
+        setShowSendBtn(false)
         setUploading(true)
         setUploadingMsg("Searching")
-         const myHeaders = new Headers();
+        const myHeaders = new Headers();
         myHeaders.append("Content-Type", "text/plain");
-        const options = { method: 'GET', headers:myHeaders };
-        let token
-        if (typeof window !== 'undefined') {
-            token = localStorage.getItem("jwt") || ""
-        }
-        console.log(studentId)
-        if (!exam) {
-            fetch(GasLink + `?type=get-student-scores-by-subject&subject=${subject}&id=${studentId}&token=${token}`, options)
-                .then(response => response.json())
-                .then(response => {
-                    if (response.status !== "normal" || !response.response.success) {
-                        createPopWindows("Upload Failed", "error message：" + response.response.error)
+        const options = { method: 'GET', headers: myHeaders };
+        const token = storage.getItem("jwt") || ""
+
+        if (!exam || exam == "All") {
+            if (studentId === "All") {
+                fetch(GAS_LINK + `?type=get-all-student-scores-by-subject&subject=${subject}&token=${token}`, options)
+                    .then(response => response.json())
+                    .then(response => {
+                        if (response.status !== "normal" || !response.response.success) {
+                            createPopWindows("Upload Failed", "error message：" + response.response.error)
+                            setUploading(false)
+                            return
+                        }
+                        const rData = response.response.scores
+                        setColHeader(students.map(e => `${e.id}（${e.name}）`).slice(1))
+                        setRowHeader(rData.map((e: { exam: string }) => e.exam))
+                        setScoreData(transpose(rData.map((e: { data: number[] }) => e.data)))
+
                         setUploading(false)
-                        return
-                    }
-                    setScoresList(response.response.scores)
-                    setUploading(false)
-                })
-                .catch(err => {
-                    createPopWindows("Failed to board the ship", "error message：" + err)
-                    setUploading(false)
-                });
+                        setShowSendBtn(true)
+                        setSendSubject(subject)
+                    })
+                    .catch(err => {
+                        createPopWindows("Failed to board the ship", "error message：" + err)
+                        setUploading(false)
+                    });
+            } else {
+                fetch(GAS_LINK + `?type=get-student-scores-by-subject&subject=${subject}&id=${studentId}&token=${token}`, options)
+                    .then(response => response.json())
+                    .then(response => {
+                        if (response.status !== "normal" || !response.response.success) {
+                            createPopWindows("Upload Failed", "error message：" + response.response.error)
+                            setUploading(false)
+                            return
+                        }
+                        const rData = response.response.scores
+                        setColHeader([`${studentId}（${getNameById(studentId)}）`])
+                        setRowHeader(rData.map((e: { exam: string }) => e.exam))
+                        setScoreData([rData.map((e: { score: number }) => e.score)])
+
+                        setUploading(false)
+                    })
+                    .catch(err => {
+                        createPopWindows("Failed to board the ship", "error message：" + err)
+                        setUploading(false)
+                    });
+            }
         } else {
-            fetch(GasLink + `?type=get-student-score-by-exam&subject=${subject}&id=${studentId}&exam=${exam}&token=${token}`, options)
-                .then(response => response.json())
-                .then(response => {
-                    if (response.status !== "normal"|| !response.response.success) {
-                        createPopWindows("Upload Failed", "error message：" + response.response.error)
+            if (studentId === "All") {
+                fetch(GAS_LINK + `?type=get-all-student-scores-by-exam&subject=${subject}&exam=${exam}&token=${token}`, options)
+                    .then(response => response.json())
+                    .then(response => {
+                        if (response.status !== "normal" || !response.response.success) {
+                            createPopWindows("Upload Failed", "error message：" + response.response.error)
+                            setUploading(false)
+                            return
+                        }
+
+                        const rData = response.response.scores
+                        setColHeader(students.map(e => `${e.id}（${e.name}）`).slice(1))
+                        setRowHeader([exam])
+                        setScoreData(rData.map((e: number) => ([e])))
+
                         setUploading(false)
-                        return
-                    }
-                    setScoresList([{ exam: exam, score: response.response.score }])
-                    console.log([{ exam: exam, score: response.response.score }])
-                    setUploading(false)
-                })
-                .catch(err => {
-                    createPopWindows("Failed to board the ship", "error message：" + err)
-                    setUploading(false)
-                });
+                    })
+                    .catch(err => {
+                        createPopWindows("Failed to board the ship", "error message：" + err)
+                        setUploading(false)
+                    });
+            } else {
+                fetch(GAS_LINK + `?type=get-student-score-by-exam&subject=${subject}&id=${studentId}&exam=${exam}&token=${token}`, options)
+                    .then(response => response.json())
+                    .then(response => {
+                        if (response.status !== "normal" || !response.response.success) {
+                            createPopWindows("Upload Failed", "error message：" + response.response.error)
+                            setUploading(false)
+                            return
+                        }
+
+                        const rData = response.response.score
+                        setColHeader([`${studentId}（${getNameById(studentId)}）`])
+                        setRowHeader([exam])
+                        setScoreData([[rData]])
+
+                        setUploading(false)
+                    })
+                    .catch(err => {
+                        createPopWindows("Failed to board the ship", "error message：" + err)
+                        setUploading(false)
+                    });
+            }
         }
     }
 
+    const getNameById = (id: string) => {
+        return (students.find(e => e.id == parseInt(id)) || id == "ALL") ? students.find(e => e.id == parseInt(id))!.name : id == "ALL" ? "all" : "None"
+    }
     return (
         <div>
             <Header />
@@ -137,26 +269,29 @@ function ViewPage() {
                     <span className=" mt-4">Subject</span>
                     <CustomSelect
                         options={subjects.map(e => ({ value: e, label: e }))}
-                        placeholder="Select a Subject or add a new one"
+                        placeholder="Select a Subject"
                         onChange={setSubject}
                         initialValue=""
                         maxH={200}
+                        disabledNew={true}
                     />
-                    <span className=" mt-4">Exam Name</span>
+                    <span className=" mt-4 relative">Exam Name {uploadingExamList && <LoadingAnimation className=" top-1 bg-white/40 absolute" primaryColor=" bg-gray-900"></LoadingAnimation>}</span>
                     <CustomSelect
                         options={exams.map(e => ({ value: e, label: e }))}
-                        placeholder="Select a Exam Name or add a new one"
+                        placeholder="Select a Exam Name"
                         onChange={setExam}
                         initialValue=""
                         maxH={200}
+                        disabledNew={true}
                     />
                     <span className=" mt-4">Student Number</span>
                     <CustomSelect
-                        options={[].map(e => ({ value: e, label: e }))}
-                        placeholder="Select a Exam Name or add a new one"
+                        options={students.map(e => ({ value: e.id.toString(), label: `${e.id}（${e.name}）` }))}
+                        placeholder="Select a Exam Name "
                         onChange={setStudentId}
                         initialValue={studentId}
                         maxH={200}
+                        disabledNew={true}
                     />
 
                     <div className=" mb-20 mt-10 w-full max-w-md ">
@@ -165,18 +300,42 @@ function ViewPage() {
                             <span className=" bg-gray-200 px-2 rounded-md mr-5">{subject || "　"}</span>
                             <span >exam：</span>
                             <span className=" bg-gray-200 px-2 rounded-md mr-5">{exam || "　"}</span>
+                            <span className=" text-nowrap">
+                                <span >student：</span>
+                                <span className=" text-nowrap bg-gray-200 px-2 rounded-md mr-5">{studentId + `（${getNameById(studentId)}）` || "　"}</span>
+                            </span>
 
                         </div>
                         <div className=" text-right">
                             <button
                                 onClick={handleSearch}
-                                className=" inline-block mt-4 not-disabled:hover:border-2 disabled:cursor-not-allowed cursor-pointer bg-slate-50 border-r-4 border-b-4 px-2 rounded-sm border-amber-600 "
+                                disabled={!subject}
+                                className=" h-10 inline-block mt-4 not-disabled:hover:border-2 disabled:cursor-not-allowed cursor-pointer bg-slate-50 border-r-4 border-b-4 px-2 rounded-sm border-amber-600 "
                             >
                                 Search
                             </button>
                         </div>
                     </div>
-                    {scoresList.map(e => <AScore key={e.exam} {...e} />)}
+                    {/* <div className=" flex rounded-lg overflow-hidden">
+                        {scoresList.map(e => <AScore key={e.exam} {...e} />)}
+                    </div> */}
+                </div>
+                <div className="  px-[5%] sm:px-[10%] flex flex-col mb-20">
+                    <ScoresTable
+                        rowHeader={rowHeader}
+                        colHeader={colHeader}
+                        data={scoreData}
+                    />
+                    {showSendBtn &&
+                        <div className=" text-right mt-4">
+                            <button
+                                onClick={handleSend}
+                                className=" inline-block mt-4 h-10 not-disabled:hover:border-2 disabled:cursor-not-allowed cursor-pointer bg-slate-50 border-r-4 border-b-4 px-2 rounded-sm border-amber-600 "
+                            >
+                                Send email to students
+                            </button>
+                        </div>
+                    }
                 </div>
             </div>
             {uploading &&
@@ -190,15 +349,3 @@ function ViewPage() {
 }
 export default ViewPage
 
-
-
-function AScore({ exam, score }: { exam: string, score: number }) {
-    return (
-        <div className=" w-full max-w-md my-1">
-            <span >exam：</span>
-            <span className=" py-0.5 bg-gray-200 px-2 rounded-md mr-5">{exam}</span>
-            <span >score：</span>
-            <span className=" py-0.5 bg-gray-200 px-2 rounded-md">{score}</span>
-        </div>
-    )
-}

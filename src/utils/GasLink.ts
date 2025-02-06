@@ -1,1 +1,1 @@
-export const GasLink = "https://script.google.com/macros/s/AKfycbwY25ZWwwQpxo79XDnKMgH9cknAN87FTwnsp2pMnCWkgBGlN2pzGMNN4nY0xC798k5Y/exec"
+export const GAS_LINK = "https://script.google.com/macros/s/AKfycbyV63V21_jTw4pI26hB5tT_T-bhWcnQQowDAjhEJadV_gI9qffJ_e5ym1blDNwRU4z5/exec"
