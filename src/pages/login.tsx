@@ -28,7 +28,7 @@ function LoginPage() {
         try {
             const options = {
                 method: 'POST',
-                mode: 'no-CORS', 
+                redirect: "follow",
                 headers: { 'Content-Type': 'text/plain', 'User-Agent': 'insomnia/10.3.0' },
                 body: `{"type":"login","data":{"name":"${username}","password":"${await hashPassword(password)}"}}`
             };
