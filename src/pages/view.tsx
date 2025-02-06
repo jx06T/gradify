@@ -88,7 +88,7 @@ function ViewPage() {
                 setStudents([{ id: "All", name: "all" }, ...(response.response.data || [])])
                 setUploading(false)
             })
-            .catch(err => console.error(err));
+            .catch(err => alert(err));
             
     }, [])
 
