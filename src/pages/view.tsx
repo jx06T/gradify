@@ -79,10 +79,10 @@ function ViewPage() {
         //     .catch(err => console.error(err));
 
             
-        const myHeaders2 = new Headers();
-        myHeaders2.append("Content-Type", "text/plain");
-        const options2 = { method: 'GET', headers: myHeaders2 };
-        fetch(GAS_LINK + `?type=get-students&token=${storage.getItem('jwt')}`, options2)
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "text/plain");
+        const options = { method: 'GET', headers: myHeaders};
+        fetch(GAS_LINK + `?type=get-students&token=${storage.getItem('jwt')}`, options)
             .then(response => response.json())
             .then(response => {
                 setStudents([{ id: "All", name: "all" }, ...(response.response.data || [])])
