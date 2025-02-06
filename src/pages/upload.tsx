@@ -276,7 +276,7 @@ function UploadPage() {
 
     React.useEffect(() => {
         if (!storage.getItem('permissions') || !storage.getItem("name") || storage.getItem('permissions') !== "2" || !storage.getItem("jwt")) {
-            createPopWindows("Insufficient permissions", "Please log in as a teacher", () => { navigate("/") })
+            createPopWindows("Insufficient permissions", "Please log in as a teacher", () => { navigate("/login") })
             return
         }
 

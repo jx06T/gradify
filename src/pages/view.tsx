@@ -108,7 +108,7 @@ function ViewPage() {
 
     React.useEffect(() => {
         if (!storage.getItem('permissions') || !storage.getItem("name") || !storage.getItem("jwt")) {
-            createPopWindows("Insufficient permissions", "Please log in", () => { navigate("/") })
+            createPopWindows("Insufficient permissions", "Please log in", () => { navigate("/login") })
             return
         }
 
