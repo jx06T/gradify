@@ -182,7 +182,7 @@ function UploadPage() {
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "text/plain");
         const options = { method: 'GET', headers:myHeaders };
-        
+
         fetch(GasLink + '?type=get-subjects&=', options)
             .then(response => response.json())
             .then(response => setSubjects(response.response))
@@ -207,7 +207,7 @@ function UploadPage() {
     React.useEffect(() => {
         if (typeof window !== 'undefined') {
             if (!localStorage.getItem('permissions') || !localStorage.getItem("name") || localStorage.getItem('permissions') !== "2" || !localStorage.getItem('permissions') || !localStorage.getItem("jwt")) {
-                createPopWindows("Insufficient permissions", "Please log in", () => { navigate("/") })
+                createPopWindows("Insufficient permissions", "Please log in as a teacher", () => { navigate("/") })
                 return
             }
             const myHeaders = new Headers();
