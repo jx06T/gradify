@@ -225,11 +225,15 @@ function UploadPage() {
             .then(response => response.json())
             .then(response => {
                 setSubjects(response.response.data || [])
-                // setUploading(false)
+                setUploading(false)
             })
             .catch(err => console.error(err));
 
-        fetch(GAS_LINK + `?type=get-students&token=${storage.getItem('jwt')}`, options)
+
+        const myHeaders2 = new Headers();
+        myHeaders2.append("Content-Type", "text/plain");
+        const options2 = { method: 'GET', headers: myHeaders2 };
+        fetch(GAS_LINK + `?type=get-students&token=${storage.getItem('jwt')}`, options2)
             .then(response => response.json())
             .then(response => {
                 setStudents(response.response.data || [])
