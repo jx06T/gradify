@@ -5,7 +5,7 @@ import CustomSelect from '../components/Select';
 import { navigate } from "gatsby";
 import createPopWindows from "../components/PopWindows";
 import LoadingAnimation from "../components/LoadingAnimation";
-import { GAS_LINK } from "../utils/gasLink";
+import { GAS_LINK } from "../utils/gasUrl";
 import { storage } from "../utils/storage";
 
 

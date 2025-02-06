@@ -6,7 +6,7 @@ import { navigate } from "gatsby";
 import { MiEnter } from "../components/Icons";
 import createPopWindows from "../components/PopWindows";
 import LoadingAnimation from "../components/LoadingAnimation";
-import { GAS_LINK } from "../utils/gasLink";
+import { GAS_LINK } from "../utils/gasUrl";
 import { storage } from "../utils/storage";
 
 

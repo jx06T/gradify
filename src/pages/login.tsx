@@ -3,7 +3,7 @@ import { StaticImage } from "gatsby-plugin-image";
 import createPopWindows from "../components/PopWindows";
 import { navigate } from "gatsby";
 import LoadingAnimation from "../components/LoadingAnimation";
-import { GAS_LINK } from "../utils/gasLink";
+import { GAS_LINK } from "../utils/gasUrl";
 import { Link } from "gatsby";
 import { useLocation } from "@reach/router";
 import { storage } from "../utils/storage";
