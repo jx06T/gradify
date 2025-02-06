@@ -225,7 +225,7 @@ function UploadPage() {
             .then(response => response.json())
             .then(response => {
                 setSubjects(response.response.data || [])
-                setUploading(false)
+                // setUploading(false)
             })
             .catch(err => console.error(err));
 
