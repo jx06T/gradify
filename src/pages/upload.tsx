@@ -200,7 +200,7 @@ function UploadPage() {
         
         fetch(GasLink + `?type=get-exams&subject=${subject}`, options)
             .then(response => response.json())
-            .then(response => setExams(response.response))
+            .then(response => setExams(response.response||[]))
             .catch(err => console.error(err));
     }, [subject])
 

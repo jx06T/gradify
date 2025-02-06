@@ -47,7 +47,7 @@ function ViewPage() {
 
         fetch(GasLink + `?type=get-exams&subject=${subject}`, options)
             .then(response => response.json())
-            .then(response => setExams(response.response))
+            .then(response => setExams(response.response||[]))
             .catch(err => console.error(err));
     }, [subject])
 
@@ -152,7 +152,7 @@ function ViewPage() {
                     />
                     <span className=" mt-4">Student Number</span>
                     <CustomSelect
-                        options={exams.map(e => ({ value: e, label: e }))}
+                        options={[].map(e => ({ value: e, label: e }))}
                         placeholder="Select a Exam Name or add a new one"
                         onChange={setStudentId}
                         initialValue={studentId}
