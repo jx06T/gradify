@@ -179,8 +179,10 @@ function UploadPage() {
     }
 
     React.useEffect(() => {
-        const options = { method: 'GET', headers: { 'User-Agent': 'insomnia/10.3.0' } };
-
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "text/plain");
+        const options = { method: 'GET', headers:myHeaders };
+        
         fetch(GasLink + '?type=get-subjects&=', options)
             .then(response => response.json())
             .then(response => setSubjects(response.response))
@@ -192,8 +194,10 @@ function UploadPage() {
         if (!subject) {
             return
         }
-        const options = { method: 'GET', headers: { 'User-Agent': 'insomnia/10.3.0' } };
-
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "text/plain");
+        const options = { method: 'GET', headers:myHeaders };
+        
         fetch(GasLink + `?type=get-exams&subject=${subject}`, options)
             .then(response => response.json())
             .then(response => setExams(response.response))

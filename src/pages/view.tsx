@@ -25,7 +25,9 @@ function ViewPage() {
     },[studentId])
 
     React.useEffect(() => {
-        const options = { method: 'GET', headers: { 'User-Agent': 'insomnia/10.3.0' } };
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "text/plain");
+        const options = { method: 'GET', headers:myHeaders };
 
         fetch(GasLink + '?type=get-subjects&=', options)
             .then(response => response.json())
@@ -39,7 +41,9 @@ function ViewPage() {
             return
         }
 
-        const options = { method: 'GET', headers: { 'User-Agent': 'insomnia/10.3.0' } };
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "text/plain");
+        const options = { method: 'GET', headers:myHeaders };
 
         fetch(GasLink + `?type=get-exams&subject=${subject}`, options)
             .then(response => response.json())
@@ -81,7 +85,9 @@ function ViewPage() {
     const handleSearch = () => {
         setUploading(true)
         setUploadingMsg("Searching")
-        const options = { method: 'GET', headers: { 'User-Agent': 'insomnia/10.3.0' } };
+         const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "text/plain");
+        const options = { method: 'GET', headers:myHeaders };
         let token
         if (typeof window !== 'undefined') {
             token = localStorage.getItem("jwt") || ""
