@@ -165,7 +165,7 @@ function UploadPage() {
         fetch(GasLink, options)
             .then(response => response.json())
             .then(response => {
-                if (response.success) {
+                if (response.situation=="success") {
                     createPopWindows("Upload Successfully")
                 } else {
                     createPopWindows("Upload Failed", "error message：" + response.error, response.error == "Expired" ? (() => { navigate("/login") }) : undefined)
