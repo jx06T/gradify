@@ -16,6 +16,10 @@ const CustomSelect = ({
     const inputRef = useRef(null);
 
     useEffect(() => {
+        setInputValue(initialValue)
+    }, [initialValue])
+
+    useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             //@ts-ignore
             if (wrapperRef.current && !wrapperRef.current!.contains(event.target)) {

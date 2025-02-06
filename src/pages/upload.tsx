@@ -58,15 +58,6 @@ const NumberKeypad = ({ onAC, onSubmit, onChange, autoSubmitDelay = 1000 }: { on
         }
     };
 
-    React.useEffect(() => {
-        if (typeof window !== 'undefined') {
-            if (!localStorage.getItem('permissions') || !localStorage.getItem("name") || localStorage.getItem('permissions') !== "2") {
-                createPopWindows("Insufficient permissions", "")
-                navigate("/")
-            }
-        }
-    }, [])
-
     const buttonClass = "border-2 border-white h-16 bg-gray-200 hover:bg-gray-300 active:bg-gray-400 transition-colors /rounded-lg text-xl font-semibold";
 
     return (
@@ -131,7 +122,7 @@ interface DataT {
 
 
 
-function AddPage() {
+function UploadPage() {
     const [dataList, setDataList] = React.useState<DataT[]>([])
     const [stId, setStId] = React.useState<number>(0)
     const [subject, setSubject] = React.useState<string>("")
@@ -139,7 +130,9 @@ function AddPage() {
     const [subjects, setSubjects] = React.useState<string[]>([])
     const [exams, setExams] = React.useState<string[]>([])
     const [inputV, setInputV] = React.useState<number>(0)
-    const [uploading, setUploading] = React.useState<boolean>(false)
+    const [uploading, setUploading] = React.useState<boolean>(true)
+    const [uploadingMsg, setUploadingMsg] = React.useState<string>("Verifying identity")
+
 
     const handleEnterNumber = (n: number) => {
         if (!stId) {
@@ -152,6 +145,8 @@ function AddPage() {
 
     const handleUpload = () => {
         setUploading(true)
+        setUploadingMsg("Uploading")
+
         let body: AddBodyT = { type: "add" }
         if (typeof window !== 'undefined') {
             body.token = localStorage.getItem("jwt") || ""
@@ -172,7 +167,11 @@ function AddPage() {
         fetch(GasLink, options)
             .then(response => response.json())
             .then(response => {
-                createPopWindows("Upload Successfully")
+                if (response.success) {
+                    createPopWindows("Upload Successfully")
+                } else {
+                    createPopWindows("Upload Failed", "error message：" + response.error, response.error == "Expired" ? (() => { navigate("/login") }) : undefined)
+                }
                 setUploading(false)
             })
             .catch(err => {
@@ -202,6 +201,33 @@ function AddPage() {
             .then(response => setExams(response.response))
             .catch(err => console.error(err));
     }, [subject])
+
+    React.useEffect(() => {
+        if (typeof window !== 'undefined') {
+            if (!localStorage.getItem('permissions') || !localStorage.getItem("name") || localStorage.getItem('permissions') !== "2" || !localStorage.getItem('permissions') || !localStorage.getItem("jwt")) {
+                createPopWindows("Insufficient permissions", "Please log in", () => { navigate("/") })
+                return
+            }
+            const options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain',
+                    'User-Agent': 'insomnia/10.3.0',
+                },
+                body: `{"type":"verify","token":"${localStorage.getItem("jwt")}"}`
+            };
+
+            fetch(GasLink, options)
+                .then(response => response.json())
+                .then(response => {
+                    if (!response.success) {
+                        createPopWindows("Insufficient permissions", "Please log in as a teacher", () => { navigate("/") })
+                    }
+                    setUploading(false)
+                })
+                .catch(err => console.error(err));
+        }
+    }, [])
 
     return (
         <div>
@@ -257,11 +283,11 @@ function AddPage() {
             </div>
             {uploading &&
                 <div className=" fixed left-0 top-0 w-full h-full bg-white/30 backdrop-blur-sm pt-80">
-                    <div className=" w-full text-center text-2xl mb-4 ">Uploading</div>
+                    <div className=" w-full text-center text-2xl mb-4 ">{uploadingMsg}</div>
                     <LoadingAnimation primaryColor="bg-gray-600" className=" scale-150"></LoadingAnimation>
                 </div>
             }
         </div>
     )
 }
-export default AddPage
+export default UploadPage

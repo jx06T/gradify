@@ -38,6 +38,7 @@ function LoginPage() {
                 createPopWindows('Login successful', `role：${["Guest", "Student", "Teacher"][parseInt(result.permissions)]}`, () => { navigate("/") })
                 if (typeof window !== 'undefined') {
                     localStorage.setItem("name", username)
+                    localStorage.setItem("id", result.id)
                     localStorage.setItem("permissions", result.permissions)
                     localStorage.setItem('jwt', result.token);
                 }
