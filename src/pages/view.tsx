@@ -57,12 +57,11 @@ function ViewPage() {
             setStudentId(localStorage.getItem("id") || "")
             console.log(studentId,localStorage.getItem("id") || "")
             
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "text/plain");
             const options = {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain',
-                    'User-Agent': 'insomnia/10.3.0',
-                },
+                headers: myHeaders,
                 body: `{"type":"verify","token":"${localStorage.getItem("jwt")}"}`
             };
 

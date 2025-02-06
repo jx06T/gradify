@@ -154,13 +154,11 @@ function UploadPage() {
         body.data = { exam: exam, subject: subject, dataList: dataList }
 
         // console.log(body)
-
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "text/plain");
         const options = {
             method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain',
-                'User-Agent': 'insomnia/10.3.0',
-            },
+            headers: myHeaders,
             body: JSON.stringify(body)
         };
 
@@ -208,12 +206,11 @@ function UploadPage() {
                 createPopWindows("Insufficient permissions", "Please log in", () => { navigate("/") })
                 return
             }
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "text/plain");
             const options = {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain',
-                    'User-Agent': 'insomnia/10.3.0',
-                },
+                headers: myHeaders,
                 body: `{"type":"verify","token":"${localStorage.getItem("jwt")}"}`
             };
 

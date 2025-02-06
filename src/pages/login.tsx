@@ -26,8 +26,8 @@ function LoginPage() {
         // @ts-ignore
         e.preventDefault();
         try {
-            const myHeaders = new Headers();
-            myHeaders.append("Content-Type", "text/plain");
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "text/plain");
             const options = {
                 method: 'POST',
                 redirect: "follow",
