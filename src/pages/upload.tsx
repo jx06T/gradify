@@ -365,13 +365,13 @@ function UploadPage() {
                     }
                     <div className=" mb-20 w-full max-w-md ">
                         <div className=" w-full my-1 leading-8">
-                            <span >subject：</span>
-                            <span className=" bg-gray-200 px-2 rounded-md mr-5">{subject || "　"}</span>
-                            <span >exam：</span>
-                            <span className=" bg-gray-200 px-2 rounded-md mr-5">{exam || "　"}</span>
-                            <span className=" text-nowrap" >data length：
-                                <span className=" bg-gray-200 px-2 rounded-md text-nowrap">{dataList.length}</span>
-                            </span>
+                            <span className=" text-nowrap ">subject：</span>
+                            <span className=" text-nowrap bg-gray-200 px-2 rounded-md mr-5">{subject || "　"}</span>
+                            <span className=" text-nowrap ">exam：</span>
+                            <span className=" text-nowrap bg-gray-200 px-2 rounded-md mr-5">{exam || "　"}</span>
+                            <span className=" text-nowrap" >data length： </span>
+                            <span className=" bg-gray-200 px-2 rounded-md text-nowrap">{dataList.length}</span>
+                           
                         </div>
                         <div className=" text-right">
                             <button
