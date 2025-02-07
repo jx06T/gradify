@@ -131,16 +131,16 @@ const NumberKeypad = ({ onAC, onSubmit, onChange, autoSubmitDelay = 1000 }: { on
 function AScore({ id, score, onDelete, name }: { name: string, id: number, score: number, onDelete: Function }) {
     return (
         <div className=" w-full max-w-md my-1 space-x-10">
-            <span className=" w-20 inline-block">
+            <span className="  w-10 sm:w-16 md:w-20 inline-block">
                 <span className=" py-0.5 bg-gray-200 px-2 rounded-md ">{id}</span>
             </span>
-            <span className=" w-20 inline-block">
+            <span className="  w-10 sm:w-16 md:w-20 inline-block">
                 <span className=" py-0.5 bg-gray-200 px-2 rounded-md ">{name}</span>
             </span>
-            <span className=" w-20 inline-block">
+            <span className="  w-10 sm:w-16 md:w-20 inline-block">
                 <span className=" py-0.5 bg-gray-200 px-2 rounded-md">{score}</span>
             </span>
-            <span className=" w-20 inline-block">
+            <span className="  w-10 sm:w-16 md:w-20 inline-block">
                 <span onClick={() => onDelete(id)} className=" py-0.5 cursor-pointer text-xl hover:bg-red-50 text-red-500 px-2 rounded-md">×</span>
             </span>
         </div>
@@ -354,10 +354,10 @@ function UploadPage() {
                     <NumberKeypad onSubmit={handleEnterNumber} onChange={setInputV} autoSubmitDelay={500} onAC={() => setStId(0)}></NumberKeypad>
                     <hr className=" my-2 mb-3  w-full" />
                     <div className=" w-full max-w-md my-1 space-x-10">
-                        <span className=" inline-block w-20">Number</span>
-                        <span className=" inline-block w-20">Name</span>
-                        <span className=" inline-block w-20">Score</span>
-                        <span className=" inline-block w-20">Delete</span>
+                        <span className=" inline-block w-10 sm:w-16 md:w-20">Number</span>
+                        <span className=" inline-block w-10 sm:w-16 md:w-20">Name</span>
+                        <span className=" inline-block w-10 sm:w-16 md:w-20">Score</span>
+                        <span className=" inline-block w-10 sm:w-16 md:w-20">Delete</span>
                     </div>
                     {dataList.map(e => (<AScore key={e.id} {...e} onDelete={(dId: number) => setDataList(dataList.filter(e => e.id != dId))} />))}
                     {dataList.length > 0 &&
