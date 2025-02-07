@@ -71,6 +71,7 @@ function ViewPage() {
         const options = { method: 'GET', headers: myHeaders };
 
         fetch(GAS_LINK + '?type=get-subjects&=', options)
+
             .then(response => response.json())
             .then(response => {
                 setSubjects(response.response.data || [])
@@ -94,7 +95,7 @@ function ViewPage() {
                 setStudents([{ id: "All", name: "all" }, ...(response.response.data || [])])
                 setUploading(false)
             })
-            .catch(err => console.error(err));
+            .catch(err => alert(err));
 
     }, [])
 
