@@ -49,9 +49,10 @@ function ViewPage() {
     const [studentId, setStudentId] = React.useState<string>("")
     const [subjects, setSubjects] = React.useState<string[]>([])
     const [exams, setExams] = React.useState<string[]>(["All"])
-    const [uploading, setUploading] = React.useState<boolean>(true)
+    const [loading, setLoading] = React.useState<boolean>(true)
+    const [updating, setUpdating] = React.useState<boolean>(true)
     const [uploadingExamList, setUploadingExamList] = React.useState<boolean>(false)
-    const [uploadingMsg, setUploadingMsg] = React.useState<string>("Verifying identity")
+    const [uploadingMsg, setUploadingMsg] = React.useState<string>("Confirm local information")
     const [students, setStudents] = React.useState<{ name: string, id: number }[]>([])
 
     const [rowHeader, setRowHeader] = React.useState<string[]>([])
@@ -61,11 +62,7 @@ function ViewPage() {
     const [showSendBtn, setShowSendBtn] = React.useState<boolean>(false)
     const [sendSubject, setSendSubject] = React.useState<string>('')
 
-    React.useEffect(() => {
-        console.log(studentId)
-    }, [studentId])
-
-    React.useEffect(() => {
+    const pullData = () => {
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "text/plain");
         const options = { method: 'GET', headers: myHeaders };
@@ -75,13 +72,14 @@ function ViewPage() {
             .then(response => response.json())
             .then(response => {
                 setSubjects(response.response.data || [])
-                setUploading(false)
+                storage.setItem("subjects", JSON.stringify(response.response.data || []))
             })
             .catch(err => console.error(err));
 
         fetch(GAS_LINK + `?type=get-students&token=${storage.getItem('jwt')}`, options)
             .then(response => response.json())
             .then(response => {
+                setUpdating(false)
                 if (response.status == "error" && response.message == "Error: Expired") {
                     storage.setItem('jwt', '')
                     createPopWindows("Login expired", "Please log in again", () => navigate("/login?r=t"))
@@ -89,15 +87,17 @@ function ViewPage() {
                 }
                 if (response.status == "error" && response.message == "Error: Verification failure") {
                     storage.setItem('jwt', '')
-                    createPopWindows("Login error", "Please log in again", () => navigate("/login?r=t"))
+                    createPopWindows("Login error", "Please log in", () => navigate("/login?r=t"))
                     return
                 }
                 setStudents([{ id: "All", name: "all" }, ...(response.response.data || [])])
-                setUploading(false)
+                storage.setItem("students", JSON.stringify([{ id: "All", name: "all" }, ...(response.response.data || [])]))
             })
-            .catch(err => alert(err));
-
-    }, [])
+            .catch(err => { 
+                console.log(err)
+                setUpdating(false)
+             });
+    }
 
     React.useEffect(() => {
         if (!subject) {
@@ -115,39 +115,36 @@ function ViewPage() {
                 setUploadingExamList(false)
             })
             .catch(err => console.error(err));
+
     }, [subject])
 
     React.useEffect(() => {
         if (!storage.getItem('permissions') || !storage.getItem("name") || !storage.getItem("jwt")) {
-            createPopWindows("Insufficient permissions", "Please log in", () => { navigate("/login") })
+            setTimeout(() => {
+                createPopWindows("Insufficient permissions", "Please log in", () => { navigate("/login") })
+            }, 500);
             return
         }
 
+        setTimeout(() => {
+            setLoading(false)
+        }, 500);
+
+        pullData()
+
+        setSubjects(JSON.parse(storage.getItem('subjects') || "[]"))
+        setStudents(JSON.parse(storage.getItem('students') || "[]"))
         setStudentId(storage.getItem('permissions') == "1" ? storage.getItem("id") || "" : "")
+
+
         return
 
-        const myHeaders = new Headers();
-        myHeaders.append("Content-Type", "text/plain");
-        const options = {
-            method: 'POST',
-            headers: myHeaders,
-            body: `{"type":"verify","token":"${storage.getItem("jwt")}"}`
-        };
-
-        fetch(GAS_LINK, options)
-            .then(response => response.json())
-            .then(response => {
-                if (!response.success) {
-                    createPopWindows("Insufficient permissions", "Please log in", () => { navigate("/") })
-                }
-                setUploading(false)
-            })
-            .catch(err => console.error(err));
     }, [])
 
     const handleSend = () => {
-        setUploading(true)
+        setLoading(true)
         setUploadingMsg("Sending")
+
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "text/plain");
         const options = {
@@ -164,14 +161,14 @@ function ViewPage() {
                 } else {
                     createPopWindows("Email sending results", response.results.map((e: { name: string, status: string }) => `${e.name} ｜ status:${e.status}`).join("\n"))
                 }
-                setUploading(false)
+                setLoading(false)
             })
             .catch(err => console.error(err));
     }
 
     const handleSearch = () => {
         setShowSendBtn(false)
-        setUploading(true)
+        setLoading(true)
         setUploadingMsg("Searching")
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "text/plain");
@@ -185,7 +182,7 @@ function ViewPage() {
                     .then(response => {
                         if (response.status !== "normal" || !response.response.success) {
                             createPopWindows("Upload Failed", "error message：" + response.message)
-                            setUploading(false)
+                            setLoading(false)
                             return
                         }
                         const rData = response.response.scores
@@ -193,13 +190,13 @@ function ViewPage() {
                         setRowHeader(rData.map((e: { exam: string }) => e.exam))
                         setScoreData(transpose(rData.map((e: { data: number[] }) => e.data)))
 
-                        setUploading(false)
+                        setLoading(false)
                         setShowSendBtn(true)
                         setSendSubject(subject)
                     })
                     .catch(err => {
                         createPopWindows("Failed to board the ship", "error message：" + err)
-                        setUploading(false)
+                        setLoading(false)
                     });
             } else {
                 fetch(GAS_LINK + `?type=get-student-scores-by-subject&subject=${subject}&id=${studentId}&token=${token}`, options)
@@ -207,7 +204,7 @@ function ViewPage() {
                     .then(response => {
                         if (response.status !== "normal" || !response.response.success) {
                             createPopWindows("Upload Failed", "error message：" + response.message)
-                            setUploading(false)
+                            setLoading(false)
                             return
                         }
                         const rData = response.response.scores
@@ -215,11 +212,11 @@ function ViewPage() {
                         setRowHeader(rData.map((e: { exam: string }) => e.exam))
                         setScoreData([rData.map((e: { score: number }) => e.score)])
 
-                        setUploading(false)
+                        setLoading(false)
                     })
                     .catch(err => {
                         createPopWindows("Failed to board the ship", "error message：" + err)
-                        setUploading(false)
+                        setLoading(false)
                     });
             }
         } else {
@@ -229,7 +226,7 @@ function ViewPage() {
                     .then(response => {
                         if (response.status !== "normal" || !response.response.success) {
                             createPopWindows("Upload Failed", "error message：" + response.message)
-                            setUploading(false)
+                            setLoading(false)
                             return
                         }
 
@@ -238,11 +235,11 @@ function ViewPage() {
                         setRowHeader([exam])
                         setScoreData(rData.map((e: number) => ([e])))
 
-                        setUploading(false)
+                        setLoading(false)
                     })
                     .catch(err => {
                         createPopWindows("Failed to board the ship", "error message：" + err)
-                        setUploading(false)
+                        setLoading(false)
                     });
             } else {
                 fetch(GAS_LINK + `?type=get-student-score-by-exam&subject=${subject}&id=${studentId}&exam=${exam}&token=${token}`, options)
@@ -250,7 +247,7 @@ function ViewPage() {
                     .then(response => {
                         if (response.status !== "normal" || !response.response.success) {
                             createPopWindows("Upload Failed", "error message：" + response.message)
-                            setUploading(false)
+                            setLoading(false)
                             return
                         }
 
@@ -259,11 +256,11 @@ function ViewPage() {
                         setRowHeader([exam])
                         setScoreData([[rData]])
 
-                        setUploading(false)
+                        setLoading(false)
                     })
                     .catch(err => {
                         createPopWindows("Failed to board the ship", "error message：" + err)
-                        setUploading(false)
+                        setLoading(false)
                     });
             }
         }
@@ -272,6 +269,7 @@ function ViewPage() {
     const getNameById = (id: string) => {
         return (students.find(e => e.id == parseInt(id)) || id == "ALL") ? students.find(e => e.id == parseInt(id))!.name : id == "ALL" ? "all" : "None"
     }
+
     return (
         <div>
             <Header />
@@ -327,9 +325,6 @@ function ViewPage() {
                             </button>
                         </div>
                     </div>
-                    {/* <div className=" flex rounded-lg overflow-hidden">
-                        {scoresList.map(e => <AScore key={e.exam} {...e} />)}
-                    </div> */}
                 </div>
                 <div className="  px-[5%] sm:px-[10%] flex flex-col mb-20">
                     <ScoresTable
@@ -349,7 +344,12 @@ function ViewPage() {
                     }
                 </div>
             </div>
-            {uploading &&
+            {updating &&
+                <div className=" fixed left-0 right-0 bg-gray-100 bottom-0 w-full h-10 pt-1">
+                    <div className="  text-center text-lg">Fetching<LoadingAnimation primaryColor="bg-gray-600" className=" !w-fit inline-block scale-50 -ml-2"></LoadingAnimation></div>
+                </div>
+            }
+            {loading &&
                 <div className=" fixed left-0 top-0 w-full h-full bg-white/30 backdrop-blur-sm pt-80">
                     <div className=" w-full text-center text-2xl mb-4 ">{uploadingMsg}</div>
                     <LoadingAnimation primaryColor="bg-gray-600" className=" scale-150"></LoadingAnimation>

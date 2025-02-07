@@ -160,14 +160,13 @@ function UploadPage() {
     const [stId, setStId] = React.useState<number>(0)
     const [subject, setSubject] = React.useState<string>("")
     const [subjects, setSubjects] = React.useState<string[]>([])
-    // const [classText, setClassText] = React.useState<string>("")
-    // const [classesText, setClassesText] = React.useState<string[]>([])
     const [exam, setExam] = React.useState<string>("")
     const [exams, setExams] = React.useState<string[]>([])
     const [students, setStudents] = React.useState<{ name: string, id: number }[]>([])
     const [inputV, setInputV] = React.useState<number>(0)
-    const [uploading, setUploading] = React.useState<boolean>(true)
-    const [uploadingMsg, setUploadingMsg] = React.useState<string>("Verifying identity")
+    const [loading, setLoading] = React.useState<boolean>(true)
+    const [updating, setUpdating] = React.useState<boolean>(true)
+    const [uploadingMsg, setUploadingMsg] = React.useState<string>("Confirm local information")
 
     const [uploadingExamList, setUploadingExamList] = React.useState<boolean>(false)
 
@@ -177,6 +176,7 @@ function UploadPage() {
         } else {
             const student = (students.find(e => e.id == stId))
             if (!student) {
+                setStId(0)
                 return
             }
             setDataList([{ id: stId, score: n, name: student.name }, ...dataList.filter(e => e.id != stId)])
@@ -185,7 +185,7 @@ function UploadPage() {
     }
 
     const handleUpload = () => {
-        setUploading(true)
+        setLoading(true)
         setUploadingMsg("Uploading")
 
         let body: AddBodyT = { type: "add", token: storage.getItem("jwt") || "" }
@@ -212,16 +212,18 @@ function UploadPage() {
                     }
                 } else {
                     createPopWindows("Upload Successfully")
+                    setDataList([])
+                    storage.setItem('data-list', "[]")
                 }
-                setUploading(false)
+                setLoading(false)
             })
             .catch(err => {
                 createPopWindows("Failed to board the ship", "error message：" + err)
-                setUploading(false)
+                setLoading(false)
             });
     }
 
-    React.useEffect(() => {
+    const pullData = () => {
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "text/plain");
         const options = { method: 'GET', headers: myHeaders };
@@ -230,17 +232,14 @@ function UploadPage() {
             .then(response => response.json())
             .then(response => {
                 setSubjects(response.response.data || [])
-                setUploading(false)
             })
             .catch(err => console.error(err));
 
 
-        const myHeaders2 = new Headers();
-        myHeaders2.append("Content-Type", "text/plain");
-        const options2 = { method: 'GET', headers: myHeaders2 };
-        fetch(GAS_LINK + `?type=get-students&token=${storage.getItem('jwt')}`, options2)
+        fetch(GAS_LINK + `?type=get-students&token=${storage.getItem('jwt')}`, options)
             .then(response => response.json())
             .then(response => {
+                setUpdating(false)
                 if (response.status == "error" && response.message == "Error: Expired") {
                     storage.setItem('jwt', '')
                     createPopWindows("Login expired", "Please log in again", () => navigate("/login?r=t"))
@@ -252,26 +251,12 @@ function UploadPage() {
                     return
                 }
                 setStudents(response.response.data || [])
-                setUploading(false)
             })
-            .catch(err => console.error(err));
-    }, [])
-
-    // React.useEffect(() => {
-    //     if (!classText) {
-    //         return
-    //     }
-
-    //     const myHeaders = new Headers();
-    //     myHeaders.append("Content-Type", "text/plain");
-    //     const options = { method: 'GET', headers: myHeaders };
-
-    //     fetch(GAS_LINK + `?type=get-exams&subject=${subject}`, options)
-    //         .then(response => response.json())
-    //         .then(response => setSubjects(response.response || []))
-    //         .catch(err => console.error(err));
-    // }, [classText])
-
+            .catch(err => {
+                console.log(err)
+                setUpdating(false)
+            });
+    }
     React.useEffect(() => {
         if (!subject) {
             return
@@ -292,31 +277,38 @@ function UploadPage() {
 
     }, [subject])
 
+    React.useEffect(() => {
+        if (!dataList || dataList.length === 0) {
+            return
+        }
+        console.log(!dataList)
+        storage.setItem('data-list', JSON.stringify(dataList))
+    }, [dataList])
 
     React.useEffect(() => {
-        if (!storage.getItem('permissions') || !storage.getItem("name") || storage.getItem('permissions') !== "2" || !storage.getItem("jwt")) {
-            createPopWindows("Insufficient permissions", "Please log in as a teacher", () => { navigate("/login") })
+
+        if (!storage.getItem('permissions') || !storage.getItem("name") || !storage.getItem("jwt")) {
+            setTimeout(() => {
+                if (storage.getItem('permissions') !== "2") {
+                    createPopWindows("Insufficient permissions", "Please log in as a teacher", () => { navigate("/") })
+                } else {
+                    createPopWindows("Insufficient permissions", "Please log in", () => { navigate("/login") })
+                }
+
+            }, 500)
             return
         }
 
-        return
-        const myHeaders = new Headers();
-        myHeaders.append("Content-Type", "text/plain");
-        const options = {
-            method: 'POST',
-            headers: myHeaders,
-            body: `{"type":"verify","token":"${storage.getItem("jwt")}"}`
-        };
+        setTimeout(() => {
+            setLoading(false)
+        }, 500);
 
-        // fetch(GAS_LINK, options)
-        //     .then(response => response.json())
-        //     .then(response => {
-        //         if (!response.success) {
-        //             createPopWindows("Insufficient permissions", "Please log in as a teacher", () => { navigate("/login") })
-        //         }
-        //         setUploading(false)
-        //     })
-        //     .catch(err => console.error(err));
+
+        setDataList(JSON.parse(storage.getItem('data-list') || "[]"))
+        setSubjects(JSON.parse(storage.getItem('subjects') || "[]"))
+        setStudents(JSON.parse(storage.getItem('students') || "[]"))
+        pullData()
+
     }, [])
 
     return (
@@ -324,14 +316,6 @@ function UploadPage() {
             <Header />
             <div className=" w-full mt-20">
                 <div className=" px-[10%] sm:px-[20%] text-lg flex flex-col justify-center items-center">
-                    {/* <span className=" mt-4">Class</span>
-                    <CustomSelect
-                        options={classesText.map(e => ({ value: e, label: e }))}
-                        placeholder="Select a Class or add a new one"
-                        onChange={setClassText}
-                        initialValue=""
-                        maxH={200}
-                    /> */}
                     <span className=" mt-4">Subject</span>
                     <CustomSelect
                         options={subjects.map(e => ({ value: e, label: e }))}
@@ -385,7 +369,12 @@ function UploadPage() {
                     </div>
                 </div>
             </div>
-            {uploading &&
+            {updating &&
+                <div className=" fixed left-0 right-0 bg-gray-100 bottom-0 w-full h-10 pt-1">
+                    <div className="  text-center text-lg">Fetching<LoadingAnimation primaryColor="bg-gray-600" className=" !w-fit inline-block scale-50 -ml-2"></LoadingAnimation></div>
+                </div>
+            }
+            {loading &&
                 <div className=" fixed left-0 top-0 w-full h-full bg-white/30 backdrop-blur-sm pt-80">
                     <div className=" w-full text-center text-2xl mb-4 ">{uploadingMsg}</div>
                     <LoadingAnimation primaryColor="bg-gray-600" className=" scale-150"></LoadingAnimation>
