@@ -203,10 +203,15 @@ function UploadPage() {
         fetch(GAS_LINK, options)
             .then(response => response.json())
             .then(response => {
-                if (response.situation == "success") {
-                    createPopWindows("Upload Successfully")
+                if (response.status == "error") {
+                    createPopWindows("Upload Failed", "error message：" + response.message)
+                    if (response.message == "Error: Expired") {
+                        storage.setItem('jwt', '')
+                        createPopWindows("Login expired", "Please log in again", () => navigate("/login?r=t"))
+                        return
+                    }
                 } else {
-                    createPopWindows("Upload Failed", "error message：" + response.error, response.error === "Expired" ? (() => { navigate("/login?r=t") }) : undefined)
+                    createPopWindows("Upload Successfully")
                 }
                 setUploading(false)
             })
@@ -236,6 +241,16 @@ function UploadPage() {
         fetch(GAS_LINK + `?type=get-students&token=${storage.getItem('jwt')}`, options2)
             .then(response => response.json())
             .then(response => {
+                if (response.status == "error" && response.message == "Error: Expired") {
+                    storage.setItem('jwt', '')
+                    createPopWindows("Login expired", "Please log in again", () => navigate("/login?r=t"))
+                    return
+                }
+                if (response.status == "error" && response.message == "Error: Verification failure") {
+                    storage.setItem('jwt', '')
+                    createPopWindows("Login error", "Please log in again", () => navigate("/login?r=t"))
+                    return
+                }
                 setStudents(response.response.data || [])
                 setUploading(false)
             })

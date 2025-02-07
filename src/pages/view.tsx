@@ -66,30 +66,36 @@ function ViewPage() {
     }, [studentId])
 
     React.useEffect(() => {
-        // const myHeaders = new Headers();
-        // myHeaders.append("Content-Type", "text/plain");
-        // const options = { method: 'GET', headers: myHeaders };
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "text/plain");
+        const options = { method: 'GET', headers: myHeaders };
 
-        // fetch(GAS_LINK + '?type=get-subjects&=', options)
-        //     .then(response => response.json())
-        //     .then(response => {
-        //         setSubjects(response.response.data)
-        //         setUploading(false)
-        //     })
-        //     .catch(err => console.error(err));
-
-            
-        const myHeaders2 = new Headers();
-        myHeaders2.append("Content-Type", "text/plain");
-        const options2 = { method: 'GET', headers: myHeaders2 };
-        fetch(GAS_LINK + `?type=get-students&token=${storage.getItem('jwt')}`, options2)
+        fetch(GAS_LINK + '?type=get-subjects&=', options)
             .then(response => response.json())
             .then(response => {
+                setSubjects(response.response.data || [])
+                setUploading(false)
+            })
+            .catch(err => console.error(err));
+
+        fetch(GAS_LINK + `?type=get-students&token=${storage.getItem('jwt')}`, options)
+            .then(response => response.json())
+            .then(response => {
+                if (response.status == "error" && response.message == "Error: Expired") {
+                    storage.setItem('jwt', '')
+                    createPopWindows("Login expired", "Please log in again", () => navigate("/login?r=t"))
+                    return
+                }
+                if (response.status == "error" && response.message == "Error: Verification failure") {
+                    storage.setItem('jwt', '')
+                    createPopWindows("Login error", "Please log in again", () => navigate("/login?r=t"))
+                    return
+                }
                 setStudents([{ id: "All", name: "all" }, ...(response.response.data || [])])
                 setUploading(false)
             })
             .catch(err => console.error(err));
-            
+
     }, [])
 
     React.useEffect(() => {
@@ -153,7 +159,7 @@ function ViewPage() {
             .then(response => response.json())
             .then(response => {
                 if (!response.success) {
-                    createPopWindows("Failed to send email", "error message：" + response.error)
+                    createPopWindows("Failed to send email", "error message：" + response.message)
                 } else {
                     createPopWindows("Email sending results", response.results.map((e: { name: string, status: string }) => `${e.name} ｜ status:${e.status}`).join("\n"))
                 }
@@ -177,7 +183,7 @@ function ViewPage() {
                     .then(response => response.json())
                     .then(response => {
                         if (response.status !== "normal" || !response.response.success) {
-                            createPopWindows("Upload Failed", "error message：" + response.response.error)
+                            createPopWindows("Upload Failed", "error message：" + response.message)
                             setUploading(false)
                             return
                         }
@@ -199,7 +205,7 @@ function ViewPage() {
                     .then(response => response.json())
                     .then(response => {
                         if (response.status !== "normal" || !response.response.success) {
-                            createPopWindows("Upload Failed", "error message：" + response.response.error)
+                            createPopWindows("Upload Failed", "error message：" + response.message)
                             setUploading(false)
                             return
                         }
@@ -221,7 +227,7 @@ function ViewPage() {
                     .then(response => response.json())
                     .then(response => {
                         if (response.status !== "normal" || !response.response.success) {
-                            createPopWindows("Upload Failed", "error message：" + response.response.error)
+                            createPopWindows("Upload Failed", "error message：" + response.message)
                             setUploading(false)
                             return
                         }
@@ -242,7 +248,7 @@ function ViewPage() {
                     .then(response => response.json())
                     .then(response => {
                         if (response.status !== "normal" || !response.response.success) {
-                            createPopWindows("Upload Failed", "error message：" + response.response.error)
+                            createPopWindows("Upload Failed", "error message：" + response.message)
                             setUploading(false)
                             return
                         }
