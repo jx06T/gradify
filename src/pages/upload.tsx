@@ -364,14 +364,13 @@ function UploadPage() {
                         <hr className=" mt-10 mb-3  w-full" />
                     }
                     <div className=" mb-20 w-full max-w-md ">
-                        <div className=" w-full my-1 leading-8 flex flex-wrap gap-x-5 gap-y-1">
-                            <span className=" text-nowrap ">subject：</span>
-                            <span className=" text-nowrap bg-gray-200 px-2 rounded-md mr-5">{subject || "　"}</span>
-                            <span className=" text-nowrap ">exam：</span>
-                            <span className=" text-nowrap bg-gray-200 px-2 rounded-md mr-5">{exam || "　"}</span>
-                            <span className=" text-nowrap" >data length： </span>
-                            <span className=" bg-gray-200 px-2 rounded-md text-nowrap">{dataList.length}</span>
-                           
+                       <div className="w-full my-1 leading-8 flex flex-wrap gap-x-5 gap-y-1">
+                            <span className="inline-block text-nowrap">subject：</span>
+                            <span className="inline-block text-nowrap bg-gray-200 px-2 rounded-md">{subject || "　"}</span>
+                            <span className="inline-block text-nowrap">exam：</span>
+                            <span className="inline-block text-nowrap bg-gray-200 px-2 rounded-md">{exam || "　"}</span>
+                            <span className="inline-block text-nowrap">data length：</span>
+                            <span className="inline-block text-nowrap bg-gray-200 px-2 rounded-md">{dataList.length}</span>
                         </div>
                         <div className=" text-right">
                             <button
