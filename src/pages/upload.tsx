@@ -364,7 +364,7 @@ function UploadPage() {
                         <hr className=" mt-10 mb-3  w-full" />
                     }
                     <div className=" mb-20 w-full max-w-md ">
-                        <div className=" w-full my-1 leading-8">
+                        <div className=" w-full my-1 leading-8 flex flex-wrap gap-x-5 gap-y-1">
                             <span className=" text-nowrap ">subject：</span>
                             <span className=" text-nowrap bg-gray-200 px-2 rounded-md mr-5">{subject || "　"}</span>
                             <span className=" text-nowrap ">exam：</span>
