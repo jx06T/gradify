@@ -117,10 +117,10 @@ function LoginPage() {
                                 className=" outline-none w-full py-2 px-4 mt-2 bg-white/50 rounded-md"
                             />
                         </div>
-                        <button type="submit" className=" hover:bg-white/50 cursor-pointer w-full bg-white/20 rounded-md mt-4 py-2 px-4">
+                        <button type="submit" className="  hover:bg-white/50 cursor-pointer w-full bg-white/20 rounded-md mt-4 py-2 px-4">
                             {logining ? <LoadingAnimation /> : "登入"}
                         </button>
-                        <div className="px-2 text-sm text-white "> <Link className=" underline " to="/">back to home</Link> <span>｜</span><Link className=" underline " to="/">can not login ?</Link></div>
+                        <div className=" px-2 text-sm text-white "> <Link className=" underline " to="/">back to home</Link> <span>｜</span><Link className=" underline " to="/">can not login ?</Link></div>
                     </form>
                 </div>
             </div>

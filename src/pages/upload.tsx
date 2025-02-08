@@ -250,6 +250,10 @@ function UploadPage() {
                     createPopWindows("Login error", "Please log in again", () => navigate("/login?r=t"))
                     return
                 }
+                if (response.response.data[0].isStudent) {
+                    createPopWindows("Login error", "Please log in as teacher", () => navigate("/"))
+                    return
+                }
                 setStudents(response.response.data || [])
             })
             .catch(err => {
@@ -287,7 +291,7 @@ function UploadPage() {
 
     React.useEffect(() => {
 
-        if (!storage.getItem('permissions') || !storage.getItem("name") || !storage.getItem("jwt")) {
+        if (!storage.getItem('permissions') || !storage.getItem("name") || !storage.getItem("jwt")||storage.getItem('permissions') !== "2") {
             setTimeout(() => {
                 if (storage.getItem('permissions') !== "2") {
                     createPopWindows("Insufficient permissions", "Please log in as a teacher", () => { navigate("/") })
@@ -348,7 +352,7 @@ function UploadPage() {
                         <hr className=" mt-10 mb-3  w-full" />
                     }
                     <div className=" mb-20 w-full max-w-md ">
-                       <div className="w-full my-1 leading-8 flex flex-wrap gap-x-5 gap-y-1">
+                        <div className="w-full my-1 leading-8 flex flex-wrap gap-x-5 gap-y-1">
                             <span className="inline-block text-nowrap">subject：</span>
                             <span className="inline-block text-nowrap bg-gray-200 px-2 rounded-md">{subject || "　"}</span>
                             <span className="inline-block text-nowrap">exam：</span>
